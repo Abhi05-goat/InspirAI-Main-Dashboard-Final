@@ -12,7 +12,7 @@ import TrendsSection from "@/components/trends-section"
 import CompetitorAnalysis from "@/components/competitor-analysis"
 import BusinessNiches from "@/components/business-niches"
 import ChatbotPanel from "@/components/chatbot-panel"
-import SOTATools from "@/components/sota-tools"
+
 import SearchCitations from "@/components/search-citations"
 import { fetchDashboardDataFromAPI } from "@/lib/api-client"
 import { IdeaRecord } from "@/lib/supabase-client"
@@ -103,22 +103,23 @@ export default function Dashboard() {
           <MotivationCallout motivation={dashboardData.motivation} />
         </div>
 
-        {/* Main Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          {/* Left Column - Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            <OriginalIdea idea={dashboardData.raw_idea} />
-            <RefinedIdea refinedData={dashboardData.Groq_PS_output} />
-            <ProblemSolution problemSolution={dashboardData.Groq_PS_output} />
-          </div>
+        {/* Ideas Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <OriginalIdea idea={dashboardData.raw_idea} />
+          <RefinedIdea refinedData={dashboardData.Groq_PS_output} />
+        </div>
 
-          {/* Right Column - Confidence & Quick Stats */}
-          <div className="space-y-6">
-            <ConfidenceScore
-              confidence={dashboardData.confidence}
-              reason={dashboardData.Groq_PS_output.confidence_reason}
-            />
-          </div>
+        {/* Confidence Score */}
+        <div className="mb-6">
+          <ConfidenceScore
+            confidence={dashboardData.confidence}
+            reason={dashboardData.Groq_PS_output.confidence_reason}
+          />
+        </div>
+
+        {/* Problem & Solution */}
+        <div className="mb-6">
+          <ProblemSolution problemSolution={dashboardData.Groq_PS_output} />
         </div>
 
         {/* Trends Section */}
@@ -128,15 +129,15 @@ export default function Dashboard() {
 
         {/* Competitor Analysis */}
         <div className="mb-8">
+          <div className="mb-4 p-3 bg-blue-50 border-l-4 border-blue-400 rounded">
+            <p className="text-sm text-blue-800">
+              <strong>Note:</strong> The competitors analyzed below represent current state-of-the-art (SOTA) services in this domain.
+            </p>
+          </div>
           <CompetitorAnalysis
             competitors={dashboardData.Perplexity_trend_output.analysis}
             citations={dashboardData.search_citations}
           />
-        </div>
-
-        {/* SOTA Tools Section */}
-        <div className="mb-8">
-          <SOTATools tools={[]} />
         </div>
 
         {/* Search Citations Section */}
