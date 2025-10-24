@@ -1,7 +1,7 @@
 interface RefinedIdeaProps {
   refinedData: {
     title: string
-    summary: string
+    refined_idea: string
   }
 }
 
@@ -17,7 +17,7 @@ export default function RefinedIdea({ refinedData }: RefinedIdeaProps) {
       <div className="mb-4 p-4 bg-blue-50 border-l-4 border-blue-400 rounded">
         <p className="text-gray-700 leading-relaxed italic">
           <span className="text-blue-600 font-semibold">"</span>
-          {refinedData.summary}
+          {refinedData.refined_idea}
           <span className="text-blue-600 font-semibold">"</span>
         </p>
       </div>

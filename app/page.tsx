@@ -66,7 +66,7 @@ export default function Dashboard() {
           {/* Right Column - Confidence & Quick Stats */}
           <div className="space-y-6">
             <ConfidenceScore
-              confidence={dashboardData.Groq_PS_output.confidence_score}
+              confidence={dashboardData.confidence}
               reason={dashboardData.Groq_PS_output.confidence_reason}
             />
           </div>
@@ -74,30 +74,30 @@ export default function Dashboard() {
 
         {/* Trends Section */}
         <div className="mb-8">
-          <TrendsSection trends={dashboardData.Perplexity_trend_output_raw.trends} />
+          <TrendsSection trends={dashboardData.Perplexity_trend_output.trends} />
         </div>
 
         {/* Competitor Analysis */}
         <div className="mb-8">
           <CompetitorAnalysis
-            competitors={dashboardData.Groq_PS_output.analysis}
-            citations={dashboardData.Perplexity_trend_output_raw.search_citations}
+            competitors={dashboardData.Perplexity_trend_output.analysis}
+            citations={dashboardData.search_citations}
           />
         </div>
 
         {/* SOTA Tools Section */}
         <div className="mb-8">
-          <SOTATools tools={dashboardData.Perplexity_trend_output_raw.sota_tools_snippets} />
+          <SOTATools tools={[]} />
         </div>
 
         {/* Search Citations Section */}
         <div className="mb-8">
-          <SearchCitations citations={dashboardData.Perplexity_trend_output_raw.search_citations} />
+          <SearchCitations citations={dashboardData.search_citations} />
         </div>
 
         {/* Business Niches */}
         <div className="mb-8">
-          <BusinessNiches niches={dashboardData.Groq_PS_output.niche_identification} />
+          <BusinessNiches niches={dashboardData.Perplexity_trend_output.niche_identification} />
         </div>
       </main>
 
