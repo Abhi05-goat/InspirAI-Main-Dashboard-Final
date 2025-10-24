@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react"
+import { useSearchParams } from "next/navigation"
 import Header from "@/components/header"
 import MotivationCallout from "@/components/motivation-callout"
 import OriginalIdea from "@/components/original-idea"
@@ -13,9 +14,14 @@ import BusinessNiches from "@/components/business-niches"
 import ChatbotPanel from "@/components/chatbot-panel"
 import SOTATools from "@/components/sota-tools"
 import SearchCitations from "@/components/search-citations"
-import { dashboardData } from "@/lib/sample-data"
+import { fetchDashboardDataFromAPI } from "@/lib/api-client"
+import { IdeaRecord } from "@/lib/supabase-client"
 
 export default function Dashboard() {
+  const searchParams = useSearchParams()
+  const [dashboardData, setDashboardData] = useState<IdeaRecord | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [chatMessages, setChatMessages] = useState<Array<{ role: string; content: string }>>([
     {
       role: "assistant",
@@ -27,11 +33,32 @@ export default function Dashboard() {
   const [pageContext, setPageContext] = useState("")
 
   useEffect(() => {
+    const email = searchParams.get('email') || 'asivaprakash23@gmail.com' // Default for testing
+    
+    async function loadDashboardData() {
+      setLoading(true)
+      setError(null)
+      
+      const data = await fetchDashboardDataFromAPI(email)
+      
+      if (data) {
+        setDashboardData(data)
+      } else {
+        setError('Failed to load dashboard data')
+      }
+      
+      setLoading(false)
+    }
+    
+    loadDashboardData()
+  }, [searchParams])
+
+  useEffect(() => {
     if (mainContentRef.current) {
       const htmlContent = mainContentRef.current.innerHTML
       setPageContext(htmlContent)
     }
-  }, [])
+  }, [dashboardData])
 
   const handleChatMessage = (message: string) => {
     setChatMessages((prev) => [
@@ -42,6 +69,28 @@ export default function Dashboard() {
         content: "Great question! Based on your idea, here are some actionable next steps...",
       },
     ])
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-white text-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !dashboardData) {
+    return (
+      <div className="min-h-screen bg-white text-gray-900 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error || 'No data found'}</p>
+          <p className="text-gray-600">Please check the email parameter in the URL</p>
+        </div>
+      </div>
+    )
   }
 
   return (

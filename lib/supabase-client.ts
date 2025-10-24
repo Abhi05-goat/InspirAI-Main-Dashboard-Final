@@ -1,47 +1,62 @@
-// Supabase Client Setup
-// TODO: Add NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY to your Vercel environment variables
-// These can be obtained from your Supabase project settings
+import { createClient } from '@supabase/supabase-js'
 
-import { createBrowserClient } from "@supabase/ssr"
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-let supabaseClient: ReturnType<typeof createBrowserClient> | null = null
+export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-export function getSupabaseClient() {
-  if (!supabaseClient) {
-    supabaseClient = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL || "",
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "",
-    )
+// TypeScript interface for ideas table
+export interface IdeaRecord {
+  id: string
+  created_at: string
+  email: string
+  domain: string
+  motivation: string
+  raw_idea: string
+  confidence: number
+  consent: boolean
+  attachments: any
+  Groq_PS_output: {
+    title: string
+    refined_idea: string
+    confidence_reason: string
+    problem_statement: string
+    proposed_solution: string
   }
-  return supabaseClient
+  Groq_PS_raw: string
+  Perplexity_trend_output: {
+    trends: string[]
+    analysis: Record<string, {
+      cons: string[]
+      pros: string[]
+      opportunity: string
+    }>
+    niche_identification: string[]
+  }
+  visualization_code: string | null
+  Perplexity_trend_output_raw: string
+  search_citations: string[]
 }
 
-// Example: Fetch dashboard data from Supabase
-export async function fetchDashboardData(userId: string) {
-  const supabase = getSupabaseClient()
-
+// Fetch dashboard data by email
+export async function fetchDashboardData(email: string): Promise<IdeaRecord | null> {
   try {
-    const { data, error } = await supabase.from("dashboard_ideas").select("*").eq("user_id", userId).single()
+    const { data, error } = await supabase
+      .from('ideas')
+      .select('*')
+      .eq('email', email)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single()
 
-    if (error) throw error
+    if (error) {
+      console.error('Supabase error:', error)
+      return null
+    }
+
     return data
   } catch (error) {
-    console.error("Error fetching dashboard data:", error)
-    return null
-  }
-}
-
-// Example: Save dashboard data to Supabase
-export async function saveDashboardData(userId: string, data: any) {
-  const supabase = getSupabaseClient()
-
-  try {
-    const { data: result, error } = await supabase.from("dashboard_ideas").upsert({ user_id: userId, ...data })
-
-    if (error) throw error
-    return result
-  } catch (error) {
-    console.error("Error saving dashboard data:", error)
+    console.error('Error fetching dashboard data:', error)
     return null
   }
 }

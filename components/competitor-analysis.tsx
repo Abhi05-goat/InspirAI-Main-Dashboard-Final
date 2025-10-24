@@ -69,19 +69,7 @@ export default function CompetitorAnalysis({ competitors, citations }: Competito
                   <p className="text-sm text-gray-700">{data.opportunity}</p>
                 </div>
 
-                {/* Citation Link */}
-                {citations.length > 0 && (
-                  <div className="pt-2 border-t-2 border-blue-100">
-                    <a
-                      href={citations[0]}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:text-blue-800 hover:underline font-medium"
-                    >
-                      View Source →
-                    </a>
-                  </div>
-                )}
+
               </div>
             )}
           </div>
