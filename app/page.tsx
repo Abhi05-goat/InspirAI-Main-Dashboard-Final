@@ -33,7 +33,8 @@ export default function Dashboard() {
   const [pageContext, setPageContext] = useState("")
 
   useEffect(() => {
-    const email = searchParams.get('email') || 'asivaprakash23@gmail.com' // Default for testing
+    const email = searchParams.get('email') || 'asivaprakash23@gmail.com'
+    const isNew = searchParams.get('new') === 'true'
     
     async function loadDashboardData() {
       setLoading(true)
@@ -42,8 +43,23 @@ export default function Dashboard() {
       const data = await fetchDashboardDataFromAPI(email)
       
       if (data) {
+        // Check if data is fresh (within last 10 seconds)
+        const dataAge = Date.now() - new Date(data.created_at).getTime()
+        const isFresh = dataAge < 10000
+        
+        if (isNew && !isFresh) {
+          // Keep polling for fresh data
+          setTimeout(loadDashboardData, 2000)
+          return
+        }
+        
         setDashboardData(data)
       } else {
+        if (isNew) {
+          // Keep polling if no data yet
+          setTimeout(loadDashboardData, 2000)
+          return
+        }
         setError('Failed to load dashboard data')
       }
       
@@ -72,11 +88,17 @@ export default function Dashboard() {
   }
 
   if (loading) {
+    const isNew = searchParams.get('new') === 'true'
     return (
       <div className="min-h-screen bg-white text-gray-900 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your dashboard...</p>
+          <h1 className="text-2xl font-bold mb-4">
+            {isNew ? 'Analyzing Your Idea...' : 'Loading your dashboard...'}
+          </h1>
+          <p className="text-gray-600">
+            {isNew ? 'Our AI is processing your business idea. This takes 2-3 minutes.' : 'Loading your dashboard...'}
+          </p>
         </div>
       </div>
     )
@@ -124,7 +146,13 @@ export default function Dashboard() {
 
         {/* Trends Section */}
         <div className="mb-8">
-          <TrendsSection trends={dashboardData.Perplexity_trend_output.trends} />
+          {dashboardData.Perplexity_trend_output?.trends ? (
+            <TrendsSection trends={dashboardData.Perplexity_trend_output.trends} />
+          ) : (
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded">
+              <p className="text-yellow-800">Analysis in progress... Trends will appear here once processing is complete.</p>
+            </div>
+          )}
         </div>
 
         {/* Competitor Analysis */}
@@ -134,10 +162,16 @@ export default function Dashboard() {
               <strong>Note:</strong> The competitors analyzed below represent current state-of-the-art (SOTA) services in this domain.
             </p>
           </div>
-          <CompetitorAnalysis
-            competitors={dashboardData.Perplexity_trend_output.analysis}
-            citations={dashboardData.search_citations}
-          />
+          {dashboardData.Perplexity_trend_output?.analysis ? (
+            <CompetitorAnalysis
+              competitors={dashboardData.Perplexity_trend_output.analysis}
+              citations={dashboardData.search_citations}
+            />
+          ) : (
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded">
+              <p className="text-yellow-800">Competitor analysis in progress...</p>
+            </div>
+          )}
         </div>
 
         {/* Search Citations Section */}
@@ -147,7 +181,13 @@ export default function Dashboard() {
 
         {/* Business Niches */}
         <div className="mb-8">
-          <BusinessNiches niches={dashboardData.Perplexity_trend_output.niche_identification} />
+          {dashboardData.Perplexity_trend_output?.niche_identification ? (
+            <BusinessNiches niches={dashboardData.Perplexity_trend_output.niche_identification} />
+          ) : (
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded">
+              <p className="text-yellow-800">Business niche analysis in progress...</p>
+            </div>
+          )}
         </div>
       </main>
 
