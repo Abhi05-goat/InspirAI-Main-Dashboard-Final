@@ -86,7 +86,7 @@ export default function ProcessingPage() {
               )}
               
               <a 
-                href={`/?email=${encodeURIComponent(email || '')}`}
+                href={`/dashboard?email=${encodeURIComponent(email || '')}`}
                 className={`inline-block px-6 py-3 rounded-lg transition-colors ${
                   isReady
                     ? 'bg-green-600 text-white hover:bg-green-700 animate-pulse'
