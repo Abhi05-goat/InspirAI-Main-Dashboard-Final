@@ -20,13 +20,13 @@ export default function ProcessingPage() {
       const elapsed = Math.floor((Date.now() - startTime) / 1000)
       setTimeElapsed(elapsed)
       
-      if (elapsed < 150) { // 0-2.5 minutes
+      if (elapsed < 30) { // 0-30 seconds
         setStatusMessage('🤖 AI is analyzing your idea...')
         setIsReady(false)
-      } else if (elapsed < 180) { // 2.5-3 minutes
+      } else if (elapsed < 50) { // 30-50 seconds
         setStatusMessage('🔍 Finalizing market research...')
         setIsReady(false)
-      } else { // 3+ minutes
+      } else { // 50+ seconds
         setStatusMessage('✅ Analysis Complete! Your dashboard is ready.')
         setIsReady(true)
       }
@@ -81,7 +81,7 @@ export default function ProcessingPage() {
               
               {!isReady && (
                 <p className="text-blue-700 mb-4">
-                  <strong>Expected completion:</strong> 2-3 minutes
+                  <strong>Expected completion:</strong> 50 seconds
                 </p>
               )}
               
