@@ -93,8 +93,8 @@ export async function POST(request: NextRequest) {
     console.log('Payload created successfully')
     console.log('Sending to n8n webhook...')
     
-    // Send to n8n webhook (using localhost to avoid SSL issues)
-    const n8nResponse = await fetch('http://localhost:5678/webhook-test/inspirai-tally', {
+    // Send to n8n webhook via ngrok tunnel
+    const n8nResponse = await fetch('https://spiritous-dominique-denominative.ngrok-free.dev/webhook-test/inspirai-tally', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
