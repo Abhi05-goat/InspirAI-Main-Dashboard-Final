@@ -8,6 +8,7 @@ interface SearchCitationsProps {
 
 export default function SearchCitations({ citations }: SearchCitationsProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const safeCitations = citations || []
 
   return (
     <div className="bg-white border-2 border-blue-200 rounded-xl p-6 shadow-sm">
@@ -17,13 +18,13 @@ export default function SearchCitations({ citations }: SearchCitationsProps) {
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-4 py-3 mb-4 flex items-center justify-between bg-blue-50 border-2 border-blue-200 rounded-lg hover:bg-blue-100 hover:border-blue-300 transition-all"
       >
-        <span className="font-semibold text-blue-900">{citations.length} Research Sources</span>
+        <span className="font-semibold text-blue-900">{safeCitations.length} Research Sources</span>
         <span className="text-blue-600 text-xl font-bold">{isOpen ? "−" : "+"}</span>
       </button>
 
       {isOpen && (
         <div className="space-y-3">
-          {citations.map((citation, index) => (
+          {safeCitations.map((citation, index) => (
             <a
               key={index}
               href={citation}

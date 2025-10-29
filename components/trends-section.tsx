@@ -3,12 +3,14 @@ interface TrendsSectionProps {
 }
 
 export default function TrendsSection({ trends }: TrendsSectionProps) {
+  const safeTrends = trends || []
+  
   return (
     <div className="bg-white border-2 border-blue-200 rounded-xl p-6 shadow-sm">
       <h2 className="text-2xl font-bold text-blue-900 mb-6">Market Trends</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {trends.map((trend, index) => (
+        {safeTrends.map((trend, index) => (
           <div
             key={index}
             className="bg-white border-2 border-blue-100 rounded-lg p-4 hover:shadow-md hover:border-blue-300 transition-all"
