@@ -85,18 +85,24 @@ export default function ProcessingPage() {
                 </p>
               )}
               
-              <a 
-                href={`/dashboard?email=${encodeURIComponent(email || '')}`}
-                className={`inline-block px-6 py-3 rounded-lg transition-colors ${
-                  isReady
-                    ? 'bg-green-600 text-white hover:bg-green-700 animate-pulse'
-                    : 'bg-gray-400 text-white cursor-not-allowed'
-                }`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                {isReady ? '✅ Open Dashboard (Ready!)' : '⏳ Dashboard (Processing...)'}
-              </a>
+              {isReady ? (
+                <a 
+                  href={`/dashboard?email=${encodeURIComponent(email || '')}`}
+                  className="inline-block px-6 py-3 rounded-lg transition-colors bg-green-600 text-white hover:bg-green-700 animate-pulse"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  ✅ Open Dashboard (Ready!)
+                </a>
+              ) : (
+                <button 
+                  disabled
+                  className="inline-block px-6 py-3 rounded-lg bg-gray-400 text-white cursor-not-allowed"
+                >
+                  ⏳ Dashboard (Processing...)
+                </button>
+              )}
+
               
               <p className={`text-sm mt-2 ${
                 isReady ? 'text-green-600' : 'text-blue-600'
