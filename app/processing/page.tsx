@@ -81,7 +81,7 @@ export default function ProcessingPage() {
               
               {!isReady && (
                 <p className="text-blue-700 mb-4">
-                  <strong>Expected completion:</strong> 3 minutes
+                  <strong>Expected completion:</strong> 2-3 minutes
                 </p>
               )}
               
