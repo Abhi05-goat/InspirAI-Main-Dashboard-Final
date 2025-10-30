@@ -14,27 +14,30 @@ export default function ProcessingPage() {
   const [statusMessage, setStatusMessage] = useState('🤖 Processing your idea with AI...')
   const [timeElapsed, setTimeElapsed] = useState(0)
 
-  // Check if all required fields are complete
+  // Check if the most recent row for this email is complete
   const isAnalysisComplete = (data: any) => {
-    if (!data) {
+    if (!data || !Array.isArray(data) || data.length === 0) {
       console.log('No data found')
       return false
     }
     
-    console.log('Checking completion for:', data.email)
-    console.log('Groq_PS_output:', !!data.Groq_PS_output)
-    console.log('Perplexity_trend_output:', !!data.Perplexity_trend_output)
-    console.log('Perplexity trends:', data.Perplexity_trend_output?.trends?.length || 0)
-    console.log('Search citations:', data.search_citations?.length || 0)
+    // Get the most recent row (last in array since ordered by created_at ASC)
+    const latestRow = data[data.length - 1]
     
-    // Simplified check - just need Groq and Perplexity data
-    const hasGroqData = data.Groq_PS_output && data.Groq_PS_raw
-    const hasPerplexityData = data.Perplexity_trend_output && data.Perplexity_trend_output_raw
-    const hasTrends = data.Perplexity_trend_output?.trends && data.Perplexity_trend_output.trends.length > 0
+    console.log('Checking completion for latest row:', latestRow.id)
+    console.log('Created at:', latestRow.created_at)
+    console.log('Groq_PS_output:', !!latestRow.Groq_PS_output)
+    console.log('Perplexity_trend_output:', !!latestRow.Perplexity_trend_output)
+    console.log('Perplexity trends:', latestRow.Perplexity_trend_output?.trends?.length || 0)
     
-    console.log('Has Groq:', hasGroqData)
-    console.log('Has Perplexity:', hasPerplexityData) 
-    console.log('Has Trends:', hasTrends)
+    // Check only the latest row for completion
+    const hasGroqData = latestRow.Groq_PS_output && latestRow.Groq_PS_raw
+    const hasPerplexityData = latestRow.Perplexity_trend_output && latestRow.Perplexity_trend_output_raw
+    const hasTrends = latestRow.Perplexity_trend_output?.trends && latestRow.Perplexity_trend_output.trends.length > 0
+    
+    console.log('Latest row - Has Groq:', hasGroqData)
+    console.log('Latest row - Has Perplexity:', hasPerplexityData) 
+    console.log('Latest row - Has Trends:', hasTrends)
     
     return hasGroqData && hasPerplexityData && hasTrends
   }
@@ -96,8 +99,10 @@ export default function ProcessingPage() {
       }
     }
 
-    // Check immediately
-    checkCompletion()
+    // Wait 5 seconds before first check (for Groq to process)
+    setTimeout(() => {
+      checkCompletion()
+    }, 5000)
     
     // Update every second
     pollInterval = setInterval(updateStatus, 1000)
