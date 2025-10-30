@@ -25,7 +25,6 @@ export default function ProcessingPage() {
         setIsReady(false)
       } else if (elapsed < 180) { // 2-3 minutes
         setStatusMessage('🔍 Finalizing market research...')
-        setIsReady(false)
       } else { // 3+ minutes
         setStatusMessage('✅ Analysis Complete! Your dashboard is ready.')
         setIsReady(true)
