@@ -34,9 +34,11 @@ export default function IdeaForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Only allow test@inspirai.com
+    // Only allow test@inspirai.com - complete blocking
     if (formData.email !== 'test@inspirai.com') {
       alert('InspirAI is currently under maintenance. We are improving our AI analysis system. Please try again later.')
+      // Close the tab/window
+      window.close()
       return
     }
     

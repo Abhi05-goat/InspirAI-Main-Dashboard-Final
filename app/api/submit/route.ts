@@ -6,6 +6,14 @@ export async function POST(request: NextRequest) {
     const formData = await request.json()
     console.log('Form data received:', formData)
     
+    // Backend protection - only allow test@inspirai.com
+    if (formData.email !== 'test@inspirai.com') {
+      console.log('Blocked non-test email:', formData.email)
+      return NextResponse.json({ 
+        error: 'InspirAI is currently under maintenance. Please try again later.' 
+      }, { status: 503 })
+    }
+    
 
     
     // Create Tally-compatible JSON structure
