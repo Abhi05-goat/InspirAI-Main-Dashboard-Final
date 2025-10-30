@@ -1,44 +1,109 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSearchParams } from "next/navigation"
+import { useSearchParams, useRouter } from "next/navigation"
 import Header from "@/components/header"
+import { fetchDashboardDataFromAPI } from "@/lib/api-client"
 
 export default function ProcessingPage() {
   const searchParams = useSearchParams()
+  const router = useRouter()
   const email = searchParams.get('email')
   const [isReady, setIsReady] = useState(false)
+  const [hasFailed, setHasFailed] = useState(false)
   const [statusMessage, setStatusMessage] = useState('🤖 Processing your idea with AI...')
   const [timeElapsed, setTimeElapsed] = useState(0)
+
+  // Check if all required fields are complete
+  const isAnalysisComplete = (data: any) => {
+    if (!data) {
+      console.log('No data found')
+      return false
+    }
+    
+    console.log('Checking completion for:', data.email)
+    console.log('Groq_PS_output:', !!data.Groq_PS_output)
+    console.log('Perplexity_trend_output:', !!data.Perplexity_trend_output)
+    console.log('Perplexity trends:', data.Perplexity_trend_output?.trends?.length || 0)
+    console.log('Search citations:', data.search_citations?.length || 0)
+    
+    // Simplified check - just need Groq and Perplexity data
+    const hasGroqData = data.Groq_PS_output && data.Groq_PS_raw
+    const hasPerplexityData = data.Perplexity_trend_output && data.Perplexity_trend_output_raw
+    const hasTrends = data.Perplexity_trend_output?.trends && data.Perplexity_trend_output.trends.length > 0
+    
+    console.log('Has Groq:', hasGroqData)
+    console.log('Has Perplexity:', hasPerplexityData) 
+    console.log('Has Trends:', hasTrends)
+    
+    return hasGroqData && hasPerplexityData && hasTrends
+  }
 
   useEffect(() => {
     if (!email) return
 
     const startTime = Date.now()
+    let pollInterval: NodeJS.Timeout
     
-    const updateStatus = () => {
+    const checkCompletion = async () => {
+      try {
+        const data = await fetchDashboardDataFromAPI(email)
+        
+        if (isAnalysisComplete(data)) {
+          setStatusMessage('✅ Analysis Complete! Redirecting to dashboard...')
+          setIsReady(true)
+          
+          // Auto-redirect after 1 second
+          setTimeout(() => {
+            router.push(`/dashboard?email=${encodeURIComponent(email)}`)
+          }, 1000)
+          
+          return true // Stop polling
+        }
+        
+        return false // Continue polling
+      } catch (error) {
+        console.error('Error checking completion:', error)
+        return false
+      }
+    }
+    
+    const updateStatus = async () => {
       const elapsed = Math.floor((Date.now() - startTime) / 1000)
       setTimeElapsed(elapsed)
       
-      if (elapsed < 120) { // 0-2 minutes
+      // Check for completion every 5 seconds
+      if (elapsed % 5 === 0) {
+        const isComplete = await checkCompletion()
+        if (isComplete) {
+          clearInterval(pollInterval)
+          return
+        }
+      }
+      
+      // Update status messages
+      if (elapsed < 60) {
         setStatusMessage('🤖 AI is analyzing your idea...')
-        setIsReady(false)
-      } else if (elapsed < 180) { // 2-3 minutes
-        setStatusMessage('🔍 Finalizing market research...')
-      } else { // 3+ minutes
-        setStatusMessage('✅ Analysis Complete! Your dashboard is ready.')
-        setIsReady(true)
+      } else if (elapsed < 120) {
+        setStatusMessage('🔍 Researching market trends and competitors...')
+      } else if (elapsed < 180) {
+        setStatusMessage('🔍 Finalizing analysis...')
+      } else {
+        // 3 minutes passed - show failure
+        setStatusMessage('❌ Processing failed. Please try again later.')
+        setHasFailed(true)
+        clearInterval(pollInterval)
       }
     }
 
-    // Update immediately
-    updateStatus()
+    // Check immediately
+    checkCompletion()
     
     // Update every second
-    const interval = setInterval(updateStatus, 1000)
+    pollInterval = setInterval(updateStatus, 1000)
     
-    return () => clearInterval(interval)
-  }, [email])
+    return () => clearInterval(pollInterval)
+  }, [email, router])
 
   return (
     <div className="min-h-screen bg-white text-gray-900">
@@ -85,14 +150,18 @@ export default function ProcessingPage() {
               )}
               
               {isReady ? (
-                <a 
-                  href={`/dashboard?email=${encodeURIComponent(email || '')}`}
-                  className="inline-block px-6 py-3 rounded-lg transition-colors bg-green-600 text-white hover:bg-green-700 animate-pulse"
-                  target="_blank"
-                  rel="noopener noreferrer"
+                <div className="animate-pulse">
+                  <div className="inline-block px-6 py-3 rounded-lg bg-green-600 text-white">
+                    ✅ Redirecting to Dashboard...
+                  </div>
+                </div>
+              ) : hasFailed ? (
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="inline-block px-6 py-3 rounded-lg bg-red-600 text-white hover:bg-red-700"
                 >
-                  ✅ Open Dashboard (Ready!)
-                </a>
+                  🔄 Try Again
+                </button>
               ) : (
                 <button 
                   disabled
@@ -104,11 +173,13 @@ export default function ProcessingPage() {
 
               
               <p className={`text-sm mt-2 ${
-                isReady ? 'text-green-600' : 'text-blue-600'
+                isReady ? 'text-green-600' : hasFailed ? 'text-red-600' : 'text-blue-600'
               }`}>
                 {isReady 
-                  ? 'Click above to view your complete analysis!' 
-                  : 'This page will update automatically when ready.'
+                  ? 'Automatically redirecting to your dashboard...' 
+                  : hasFailed 
+                  ? 'Analysis timed out. Click "Try Again" to retry.' 
+                  : 'Checking completion status every 5 seconds...'
                 }
               </p>
             </div>
