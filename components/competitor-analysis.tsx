@@ -9,6 +9,7 @@ interface CompetitorAnalysisProps {
       pros: string[]
       cons: string[]
       opportunity: string
+      url?: string | null
     }
   >
   citations: string[]
@@ -69,6 +70,19 @@ export default function CompetitorAnalysis({ competitors, citations }: Competito
                   <p className="text-sm text-gray-700">{data.opportunity}</p>
                 </div>
 
+                {/* Source Link */}
+                {data.url && (
+                  <div className="pt-2 border-t border-blue-200">
+                    <a 
+                      href={data.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 text-xs underline"
+                    >
+                      View Source
+                    </a>
+                  </div>
+                )}
 
               </div>
             )}
