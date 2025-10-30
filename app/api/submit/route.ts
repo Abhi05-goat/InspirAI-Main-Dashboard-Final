@@ -6,6 +6,13 @@ export async function POST(request: NextRequest) {
     const formData = await request.json()
     console.log('Form data received:', formData)
     
+    // Maintenance mode - block external users
+    if (formData.email !== 'test@inspirai.com') {
+      return NextResponse.json({ 
+        error: 'InspirAI is currently under maintenance. We are improving our AI analysis system. Please try again in a few hours.' 
+      }, { status: 503 })
+    }
+    
     // Create Tally-compatible JSON structure
     const tallyPayload = {
       eventId: Math.random().toString(36) + Date.now().toString(36),
@@ -94,7 +101,7 @@ export async function POST(request: NextRequest) {
     console.log('Sending to n8n webhook...')
     
     // Send to n8n cloud webhook
-    const n8nResponse = await fetch('https://inspirai1234.app.n8n.cloud/webhook/inspirai-tally', {
+    const n8nResponse = await fetch('https://inspirai1234.app.n8n.cloud/webhook-test/inspirai-tally', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
