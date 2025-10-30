@@ -76,6 +76,26 @@ export default function CompetitorAnalysis({ competitors, citations }: Competito
         ))}
       </div>
 
+      {/* Sources */}
+      {citations && citations.length > 0 && (
+        <div className="mt-6 pt-4 border-t-2 border-blue-100">
+          <h4 className="text-sm font-semibold text-blue-700 mb-2">Research Sources</h4>
+          <div className="flex flex-wrap gap-2">
+            {citations.slice(0, 3).map((citation, idx) => (
+              <a
+                key={idx}
+                href={citation}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-600 hover:text-blue-800 text-xs underline"
+              >
+                Source {idx + 1}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* TODO: Add comparison matrix view, export analysis */}
     </div>
   )

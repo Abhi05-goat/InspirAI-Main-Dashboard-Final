@@ -33,6 +33,13 @@ export default function IdeaForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Check if non-test email and show warning
+    if (formData.email !== 'test@gmail.com') {
+      const proceed = confirm('We are currently fixing some issues. Please try again later, or use test@gmail.com for testing.')
+      if (!proceed) return
+    }
+    
     setIsSubmitting(true)
 
     try {
