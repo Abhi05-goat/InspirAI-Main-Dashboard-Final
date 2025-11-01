@@ -123,10 +123,10 @@ export default function ProcessingPage() {
       }
     }
 
-    // Wait 15 seconds before first check (for n8n to process and create new row)
+    // Wait 8 seconds before first check (for n8n to process and create new row)
     setTimeout(() => {
       checkCompletion()
-    }, 15000)
+    }, 8000)
     
     // Update every second
     pollInterval = setInterval(updateStatus, 1000)
