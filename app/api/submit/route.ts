@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
     console.log('Sending to n8n webhook...')
     
     // Send to n8n cloud webhook
-    const n8nResponse = await fetch('https://inspirai1234.app.n8n.cloud/webhook-test/inspirai-tally', {
+    const n8nResponse = await fetch('https://inspirai1234.app.n8n.cloud/webhook/inspirai-tally', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
