@@ -74,7 +74,9 @@ export default function ProcessingPage() {
               
               // Auto-redirect after 1 second
               setTimeout(() => {
-                router.push(`/dashboard?email=${encodeURIComponent(email)}&project=${newestProjectId}`)
+                if (newestProjectId) {
+                  router.push(`/dashboard?email=${encodeURIComponent(email)}&project=${newestProjectId}`)
+                }
               }, 1000)
               
               return true // Stop polling
