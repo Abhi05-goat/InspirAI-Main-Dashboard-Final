@@ -46,42 +46,42 @@ export default function ProcessingPage() {
     if (!email) return
 
     const startTime = Date.now()
+    const processingStartTime = new Date().toISOString() // When processing page loaded
     let pollInterval: NodeJS.Timeout
-    let cachedProjectId = projectId // Use URL project ID or cache newest
-    
-    const getNewestProjectId = async () => {
-      try {
-        const response = await fetch(`/api/projects?email=${encodeURIComponent(email)}`)
-        const data = await response.json()
-        if (data.projects && data.projects.length > 0) {
-          return data.projects[0].id // First item is newest (DESC order)
-        }
-      } catch (error) {
-        console.error('Error getting newest project:', error)
-      }
-      return null
-    }
+    let newestProjectId: string | null = null
     
     const checkCompletion = async () => {
       try {
-        // If no project ID, get and cache the newest one
-        if (!cachedProjectId) {
-          cachedProjectId = await getNewestProjectId()
-          console.log('Cached newest project ID:', cachedProjectId)
-        }
+        // Get newest project ID
+        const response = await fetch(`/api/projects?email=${encodeURIComponent(email)}`)
+        const projectsData = await response.json()
         
-        const data = await fetchDashboardDataFromAPI(email, cachedProjectId)
-        
-        if (isAnalysisComplete(data)) {
-          setStatusMessage('✅ Analysis Complete! Redirecting to dashboard...')
-          setIsReady(true)
+        if (projectsData.projects && projectsData.projects.length > 0) {
+          // Only check projects created after processing started (new submissions)
+          const newProjects = projectsData.projects.filter((project: any) => {
+            return new Date(project.created_at) >= new Date(processingStartTime)
+          })
           
-          // Auto-redirect after 1 second
-          setTimeout(() => {
-            router.push(`/dashboard?email=${encodeURIComponent(email)}&project=${cachedProjectId}`)
-          }, 1000)
-          
-          return true // Stop polling
+          if (newProjects.length > 0) {
+            newestProjectId = newProjects[0].id // First new project
+            console.log('Checking new project:', newestProjectId, 'created at:', newProjects[0].created_at)
+            
+            const data = await fetchDashboardDataFromAPI(email, newestProjectId)
+            
+            if (isAnalysisComplete(data)) {
+              setStatusMessage('✅ Analysis Complete! Redirecting to dashboard...')
+              setIsReady(true)
+              
+              // Auto-redirect after 1 second
+              setTimeout(() => {
+                router.push(`/dashboard?email=${encodeURIComponent(email)}&project=${newestProjectId}`)
+              }, 1000)
+              
+              return true // Stop polling
+            }
+          } else {
+            console.log('No new projects found yet, waiting...')
+          }
         }
         
         return false // Continue polling
@@ -119,10 +119,10 @@ export default function ProcessingPage() {
       }
     }
 
-    // Wait 10 seconds before first check (for Groq to process and Supabase to create row)
+    // Wait 15 seconds before first check (for n8n to process and create new row)
     setTimeout(() => {
       checkCompletion()
-    }, 10000)
+    }, 15000)
     
     // Update every second
     pollInterval = setInterval(updateStatus, 1000)
