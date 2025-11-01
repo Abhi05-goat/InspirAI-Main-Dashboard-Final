@@ -14,6 +14,7 @@ import BusinessNiches from "@/components/business-niches"
 import ChatbotPanel from "@/components/chatbot-panel"
 
 import SearchCitations from "@/components/search-citations"
+import ExportButton from "@/components/export-button"
 import { fetchDashboardDataFromAPI } from "@/lib/api-client"
 import { IdeaRecord } from "@/lib/supabase-client"
 
@@ -34,13 +35,14 @@ export default function Dashboard() {
 
   useEffect(() => {
     const email = searchParams.get('email') || 'asivaprakash23@gmail.com'
+    const projectId = searchParams.get('project')
     const isNew = searchParams.get('new') === 'true'
     
     async function loadDashboardData() {
       setLoading(true)
       setError(null)
       
-      const data = await fetchDashboardDataFromAPI(email)
+      const data = await fetchDashboardDataFromAPI(email, projectId)
       
       if (data) {
         // Check if data is fresh (within last 10 seconds)
@@ -121,6 +123,13 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-white text-gray-900">
       <Header />
+      
+      {/* Export Button */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="flex justify-end">
+          <ExportButton data={dashboardData} />
+        </div>
+      </div>
 
       <main ref={mainContentRef} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Motivation Callout */}

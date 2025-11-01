@@ -38,16 +38,21 @@ export interface IdeaRecord {
   search_citations: string[]
 }
 
-// Fetch dashboard data by email
-export async function fetchDashboardData(email: string): Promise<IdeaRecord | null> {
+// Fetch dashboard data by email and project ID
+export async function fetchDashboardData(email: string, projectId?: string): Promise<IdeaRecord | null> {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('ideas')
       .select('*')
       .eq('email', email)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single()
+
+    if (projectId) {
+      query = query.eq('id', projectId)
+    } else {
+      query = query.order('created_at', { ascending: false }).limit(1)
+    }
+
+    const { data, error } = await query.single()
 
     if (error) {
       console.error('Supabase error:', error)

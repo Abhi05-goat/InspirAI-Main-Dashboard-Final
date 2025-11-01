@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 
 const DOMAIN_OPTIONS = [
   { id: "95e4b5f6-6ca9-417a-8766-3ec92f8e0146", text: "Social & Community (friendship, dating, local events, group platforms)" },
@@ -19,7 +19,9 @@ const DOMAIN_OPTIONS = [
 
 export default function IdeaForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [email, setEmail] = useState('')
   const [formData, setFormData] = useState({
     domain: "",
     otherDomain: "",
@@ -27,18 +29,25 @@ export default function IdeaForm() {
     idea: "",
     confidence: 5,
     deadline: "",
-    email: "",
     consent: false
   })
+
+  useEffect(() => {
+    const emailParam = searchParams.get('email')
+    if (emailParam) {
+      setEmail(emailParam)
+    } else {
+      // No email in URL, redirect to homepage
+      router.push('/')
+    }
+  }, [searchParams, router])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Only allow test@inspirai.com - complete blocking
-    if (formData.email !== 'test@inspirai.com') {
-      alert('InspirAI is currently under maintenance. We are improving our AI analysis system. Please try again later.')
-      // Close the tab/window
-      window.close()
+    // Email validation already done on homepage
+    if (email !== 'test@inspirai.com') {
+      alert('InspirAI is currently under maintenance. Please try again later.')
       return
     }
     
@@ -48,12 +57,17 @@ export default function IdeaForm() {
       const response = await fetch('/api/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({ ...formData, email })
       })
 
       if (response.ok) {
-        // Redirect to processing page instead of polling dashboard
-        router.push(`/processing?email=${encodeURIComponent(formData.email)}`)
+        const result = await response.json()
+        // Redirect to processing page with project ID if available
+        if (result.projectId) {
+          router.push(`/processing?email=${encodeURIComponent(email)}&project=${result.projectId}`)
+        } else {
+          router.push(`/processing?email=${encodeURIComponent(email)}`)
+        }
       } else {
         const errorText = await response.text()
         console.error('API Response:', response.status, errorText)
@@ -177,19 +191,14 @@ export default function IdeaForm() {
           />
         </div>
 
-        {/* Email */}
+        {/* Email Display */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
-            Email address *
+            Email address
           </label>
-          <input
-            type="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <div className="w-full px-3 py-2 bg-gray-50 border border-gray-300 rounded-md text-gray-600">
+            {email}
+          </div>
         </div>
 
         {/* Consent */}

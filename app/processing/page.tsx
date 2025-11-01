@@ -9,6 +9,7 @@ export default function ProcessingPage() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const email = searchParams.get('email')
+  const projectId = searchParams.get('project')
   const [isReady, setIsReady] = useState(false)
   const [hasFailed, setHasFailed] = useState(false)
   const [statusMessage, setStatusMessage] = useState('🤖 Processing your idea with AI...')
@@ -16,28 +17,27 @@ export default function ProcessingPage() {
 
   // Check if the most recent row for this email is complete
   const isAnalysisComplete = (data: any) => {
-    if (!data || !Array.isArray(data) || data.length === 0) {
+    if (!data) {
       console.log('No data found')
       return false
     }
     
-    // Get the most recent row (last in array since ordered by created_at ASC)
-    const latestRow = data[data.length - 1]
+    console.log('Checking completion for row:', data.id)
+    console.log('Created at:', data.created_at)
+    console.log('Groq_PS_output:', !!data.Groq_PS_output)
+    console.log('Perplexity_trend_output:', !!data.Perplexity_trend_output)
+    console.log('Perplexity trends:', data.Perplexity_trend_output?.trends?.length || 0)
     
-    console.log('Checking completion for latest row:', latestRow.id)
-    console.log('Created at:', latestRow.created_at)
-    console.log('Groq_PS_output:', !!latestRow.Groq_PS_output)
-    console.log('Perplexity_trend_output:', !!latestRow.Perplexity_trend_output)
-    console.log('Perplexity trends:', latestRow.Perplexity_trend_output?.trends?.length || 0)
+    // Check for completion
+    const hasGroqData = data.Groq_PS_output && data.Groq_PS_raw
+    const hasPerplexityData = data.Perplexity_trend_output && data.Perplexity_trend_output_raw
+    const hasTrends = data.Perplexity_trend_output?.trends && 
+      (Array.isArray(data.Perplexity_trend_output.trends) ? data.Perplexity_trend_output.trends.length > 0 : 
+       Object.keys(data.Perplexity_trend_output.trends).length > 0)
     
-    // Check only the latest row for completion
-    const hasGroqData = latestRow.Groq_PS_output && latestRow.Groq_PS_raw
-    const hasPerplexityData = latestRow.Perplexity_trend_output && latestRow.Perplexity_trend_output_raw
-    const hasTrends = latestRow.Perplexity_trend_output?.trends && latestRow.Perplexity_trend_output.trends.length > 0
-    
-    console.log('Latest row - Has Groq:', hasGroqData)
-    console.log('Latest row - Has Perplexity:', hasPerplexityData) 
-    console.log('Latest row - Has Trends:', hasTrends)
+    console.log('Has Groq:', hasGroqData)
+    console.log('Has Perplexity:', hasPerplexityData) 
+    console.log('Has Trends:', hasTrends)
     
     return hasGroqData && hasPerplexityData && hasTrends
   }
@@ -47,10 +47,30 @@ export default function ProcessingPage() {
 
     const startTime = Date.now()
     let pollInterval: NodeJS.Timeout
+    let cachedProjectId = projectId // Use URL project ID or cache newest
+    
+    const getNewestProjectId = async () => {
+      try {
+        const response = await fetch(`/api/projects?email=${encodeURIComponent(email)}`)
+        const data = await response.json()
+        if (data.projects && data.projects.length > 0) {
+          return data.projects[0].id // First item is newest (DESC order)
+        }
+      } catch (error) {
+        console.error('Error getting newest project:', error)
+      }
+      return null
+    }
     
     const checkCompletion = async () => {
       try {
-        const data = await fetchDashboardDataFromAPI(email)
+        // If no project ID, get and cache the newest one
+        if (!cachedProjectId) {
+          cachedProjectId = await getNewestProjectId()
+          console.log('Cached newest project ID:', cachedProjectId)
+        }
+        
+        const data = await fetchDashboardDataFromAPI(email, cachedProjectId)
         
         if (isAnalysisComplete(data)) {
           setStatusMessage('✅ Analysis Complete! Redirecting to dashboard...')
@@ -58,7 +78,7 @@ export default function ProcessingPage() {
           
           // Auto-redirect after 1 second
           setTimeout(() => {
-            router.push(`/dashboard?email=${encodeURIComponent(email)}`)
+            router.push(`/dashboard?email=${encodeURIComponent(email)}&project=${cachedProjectId}`)
           }, 1000)
           
           return true // Stop polling
@@ -99,10 +119,10 @@ export default function ProcessingPage() {
       }
     }
 
-    // Wait 5 seconds before first check (for Groq to process)
+    // Wait 10 seconds before first check (for Groq to process and Supabase to create row)
     setTimeout(() => {
       checkCompletion()
-    }, 5000)
+    }, 10000)
     
     // Update every second
     pollInterval = setInterval(updateStatus, 1000)
