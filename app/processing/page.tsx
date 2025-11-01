@@ -66,6 +66,8 @@ export default function ProcessingPage() {
             newestProjectId = newProjects[0].id // First new project
             console.log('Checking new project:', newestProjectId, 'created at:', newProjects[0].created_at)
             
+            if (!newestProjectId) return false
+            
             const data = await fetchDashboardDataFromAPI(email, newestProjectId)
             
             if (isAnalysisComplete(data)) {
