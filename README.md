@@ -170,7 +170,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📧 Contact
 
-**Asiva Prakash** - [Your LinkedIn] - [Your Email]
+**Abhivanth Sivaprakash** - [asivaprakash23@gmail.com]
 
 Project Link: [https://github.com/Abhi05-goat/InspirAI-Main-Dashboard-Final](https://github.com/Abhi05-goat/InspirAI-Main-Dashboard-Final)
 
